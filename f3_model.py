@@ -4,9 +4,9 @@ from keras.layers import Embedding
 from keras.layers import LSTM
 from keras.optimizers import Adam
 from keras import losses
-from os import listdir
 import numpy as np
 import tensorflow as tf
+
 tf.reset_default_graph()
 #number of epochs for training
 num_epochs = 100
@@ -20,19 +20,13 @@ n_input = 10
 batch_size = 32
 #number of hidden units in input layer lstm cell
 input_units = 500
+#hidden layer number of units
 hidden1_units = 300
 hidden2_units = 275
-hidden3_units = 275
+hidden3_units = 200
 dense_units = 10
 #percentage to drop
 dropout = 0.2
-
-# Constant Variables
-#epochs = 75
-#batch_size = 100
-#data_dim =
-#timesteps = 100000
-#num_classes = 4
 
 def read_data_sets(name):
     csv = np.genfromtxt (name, delimiter=",")
@@ -65,10 +59,7 @@ for k in range(0, len(labels_norm)):
     labels = np.append(labels, one_hot_label)
 labels = np.reshape(labels, [-1, n_labels])
 
-print features.shape
-print labels.shape
-
-model_dir = 'model'
+model_dir = 'fault_model'
 
 # Create LSTM
 # expected input data shape: (batch_size, timesteps, data_dim)
