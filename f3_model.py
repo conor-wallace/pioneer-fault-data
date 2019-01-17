@@ -81,8 +81,6 @@ model.add(Dense(dense_units, activation='relu'))
 model.add(Dense(dense_units, activation='relu'))
 model.add(Dense(n_labels,  activation='sigmoid'))
 
-model.compile(loss='categorical_crossentropy',
-              optimizer='adam',
-              metrics=['accuracy'])
+model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
 model.fit(np.reshape(features, (features.shape[0], n_features, features.shape[1])),labels, batch_size=batch_size, epochs=num_epochs, validation_split= .3)
