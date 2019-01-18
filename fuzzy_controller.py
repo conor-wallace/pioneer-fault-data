@@ -1,14 +1,14 @@
 '''
-input      error in orientation      Logic Rules        Linguistic          Numerical
-                                   _______________       ________       _________________
-                                  |               |     |        |     |                 |
------------------------>+---------| Fuzzification |---->| Engine |---->| Defuzzification |----
-                        ^         |_______________|     |________|     |_________________|    |
-                        |                                           ________       _______    |
-                        |                                          |        |     |       |   |
-                         ------------------------------------------| Sensor |<----| Plant |   |
-                                                                   |________|     |_______|<---
-                                                                   IMU Sensor   Pioneer Motors
+         input      orientation error   Logic Rules        Linguistic          Numerical                 Output
+       ___________                    _______________       ________       _________________             _______
+      |           |                  |               |     |        |     |                 |           |       |
+------| NN Output |------->+---------| Fuzzification |---->| Engine |---->| Defuzzification |---------->| Plant |
+      |___________|        ^         |_______________|     |________|     |_________________|    |      |_______|
+                           |                                                                     |
+                           |                                                                     |
+                           -----------------------------------------------------------------------
+
+
 '''
 import numpy as np
 import skfuzzy as fuzz
