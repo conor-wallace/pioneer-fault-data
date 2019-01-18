@@ -9,7 +9,7 @@ import tensorflow as tf
 
 tf.reset_default_graph()
 #number of epochs for training
-num_epochs = 100
+num_epochs = 50
 #number of possible labels
 n_labels = 3
 #number of features
@@ -17,7 +17,7 @@ n_features = 4
 #number of regressive data points
 n_input = 10
 #size of each epoch (i.e. batch)
-batch_size = 32
+batch_size = 64
 #number of hidden units in input layer lstm cell
 input_units = 500
 #hidden layer number of units
@@ -26,7 +26,7 @@ hidden2_units = 275
 hidden3_units = 200
 dense_units = 10
 #percentage to drop
-dropout = 0.2
+dropout = 0.3
 
 def read_data_sets(name):
     csv = np.genfromtxt (name, delimiter=",")
