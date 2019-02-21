@@ -9,6 +9,7 @@ from keras import losses
 import numpy as np
 import tensorflow as tf
 import os
+import csv
 
 tf.reset_default_graph()
 #number of epochs for training
@@ -32,17 +33,19 @@ dense_units = 10
 dropout = 0.3
 
 def read_data_sets(name):
-    csv = np.genfromtxt (name, delimiter=",")
-    read_data_set = np.array(csv[:,[i for i in range(0,n_features+1)]])
+    read_data_set = []
+    with open(name, "r") as fault_data:
+        for row in csv.reader(fault_data):
+            read_data_set = np.append(read_data_set, np.array(row))
     return read_data_set
 
-training_file = '../config/training_data.csv'
+training_file = '../config/new_training_set.csv'
 data_set = read_data_sets(training_file)
 print("Loaded training data...")
 
 def generate_train_test_data_sets():
     # divides the entire data set into sequences of 10 data points
-    data = np.reshape(data_set, [len(data_set)/n_input,n_input,n_features+1])
+    data = np.reshape(data_set, [int(len(data_set)/50),n_input,n_features+1])
     # shuffles the set of sequences
     np.random.shuffle(data)
 
@@ -58,7 +61,7 @@ labels = []
 # convert label data to one_hot arrays
 for k in range(0, len(labels_norm)):
     one_hot_label = np.zeros([3], dtype=float)
-    one_hot_label[int(labels_norm[k])] = 1.0
+    one_hot_label[int(float(labels_norm[k]))] = 1.0
     labels = np.append(labels, one_hot_label)
 labels = np.reshape(labels, [-1, n_labels])
 
@@ -73,6 +76,9 @@ model.add(Dropout(dropout))
 model.add(LSTM(hidden2_units, return_sequences=True))
 model.add(Dropout(dropout))
 model.add(LSTM(hidden3_units))
+model.add(Dense(dense_units, activation='relu'))
+model.add(Dense(dense_units, activation='relu'))
+model.add(Dense(dense_units, activation='relu'))
 model.add(Dense(dense_units, activation='relu'))
 model.add(Dense(dense_units, activation='relu'))
 model.add(Dense(dense_units, activation='relu'))
