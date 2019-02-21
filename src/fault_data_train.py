@@ -13,7 +13,7 @@ import csv
 
 tf.reset_default_graph()
 #number of epochs for training
-num_epochs = 50
+num_epochs = 500
 #number of possible labels
 n_labels = 3
 #number of features
@@ -21,13 +21,13 @@ n_features = 4
 #number of regressive data points
 n_input = 10
 #size of each epoch (i.e. batch)
-batch_size = 64
+batch_size = 128
 #number of hidden units in input layer lstm cell
-input_units = 500
+input_units = 250
 #hidden layer number of units
-hidden1_units = 300
-hidden2_units = 275
-hidden3_units = 200
+hidden1_units = 125
+hidden2_units = 75
+hidden3_units = 25
 dense_units = 10
 #percentage to drop
 dropout = 0.3
@@ -69,21 +69,16 @@ labels = np.reshape(labels, [-1, n_labels])
 # expected input data shape: (batch_size, timesteps, data_dim)
 model = Sequential()
 #model.add(Embedding(batch_size, timesteps, input_length=data_dim))
-model.add(LSTM(input_units, input_shape=(n_features, n_input), return_sequences=True))
+model.add(LSTM(500, input_shape=(n_features, n_input), return_sequences=True))
 model.add(Dropout(dropout))
-model.add(LSTM(hidden1_units, return_sequences=True))
+model.add(LSTM(400, return_sequences=True))
 model.add(Dropout(dropout))
-model.add(LSTM(hidden2_units, return_sequences=True))
-model.add(Dropout(dropout))
-model.add(LSTM(hidden3_units))
-model.add(Dense(dense_units, activation='relu'))
-model.add(Dense(dense_units, activation='relu'))
-model.add(Dense(dense_units, activation='relu'))
-model.add(Dense(dense_units, activation='relu'))
-model.add(Dense(dense_units, activation='relu'))
-model.add(Dense(dense_units, activation='relu'))
+model.add(LSTM(300))
+model.add(Dense(200, activation='relu'))
+model.add(Dense(100, activation='relu'))
 model.add(Dense(n_labels,  activation='sigmoid'))
 
+adam = Adam(lr=0.0001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
 model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
 history = model.fit(np.reshape(features, (features.shape[0], n_features, features.shape[1])),labels, batch_size=batch_size, epochs=num_epochs, validation_split= .3)
