@@ -40,7 +40,7 @@ data_iter = 0
 data_num_skip = 10
 data_skip = data_num_skip
 # classification for tire pressure: 0=all full, 1=left flat, 2=right flat
-test = 0
+test = 2
 
 def generate_train_test_data_sets(iter):
     global data_queue, data_iter

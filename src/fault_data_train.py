@@ -13,7 +13,7 @@ import csv
 
 tf.reset_default_graph()
 #number of epochs for training
-num_epochs = 500
+num_epochs = 2000
 #number of possible labels
 n_labels = 3
 #number of features
