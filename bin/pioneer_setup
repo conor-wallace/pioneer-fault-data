@@ -1,0 +1,6 @@
+#!/bin/bash
+echo "Enter dev port (ex. /dev/ttyUSB0): "
+read port
+sudo chmod -R 777 $port
+rosrun p2os_driver p2os_driver _port:=$port &
+rostopic pub /cmd_motor_state p2os_msgs/MotorState "state: 1" &

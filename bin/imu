@@ -1,0 +1,4 @@
+#!/bin/bash
+echo "Enter a port number (ex. /dev/ttyUSB0)"
+read port
+xterm -e "rosrun rosserial_python serial_node.py $port _baud:=115200; sleep 100" &

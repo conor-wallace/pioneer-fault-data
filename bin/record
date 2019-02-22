@@ -1,0 +1,2 @@
+#!/bin/bash
+rosbag record -O ~/catkin_ws/src/pioneer-fault-data/src/subset.bag /feature_data
