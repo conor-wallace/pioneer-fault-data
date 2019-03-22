@@ -13,7 +13,7 @@ import csv
 
 tf.reset_default_graph()
 #number of epochs for training
-num_epochs = 2000
+num_epochs = 200
 #number of possible labels
 n_labels = 3
 #number of features
@@ -21,14 +21,9 @@ n_features = 4
 #number of regressive data points
 n_input = 10
 #size of each epoch (i.e. batch)
-batch_size = 128
+batch_size = 64
 #number of hidden units in input layer lstm cell
-input_units = 250
 #hidden layer number of units
-hidden1_units = 125
-hidden2_units = 75
-hidden3_units = 25
-dense_units = 10
 #percentage to drop
 dropout = 0.3
 
@@ -39,13 +34,22 @@ def read_data_sets(name):
             read_data_set = np.append(read_data_set, np.array(row))
     return read_data_set
 
-training_file = '../config/new_training_set.csv'
+training_file = '../config/training_data.csv'
 data_set = read_data_sets(training_file)
 print("Loaded training data...")
 
 def generate_train_test_data_sets():
     # divides the entire data set into sequences of 10 data points
-    data = np.reshape(data_set, [int(len(data_set)/50),n_input,n_features+1])
+    #data = np.reshape(data_set, [int(len(data_set)/5), n_features+1])
+    #print(data)
+    #data = data[int((len(data)/20)+1):]
+    #data = np.reshape(data, [int(len(data)/n_input), n_input, n_features+1])
+    #print(len(data))
+
+    data = np.reshape(data_set, [int(len(data_set)/5), n_features+1])
+    print(len(data))
+    data = np.reshape(data, [int(len(data)/n_input), n_input, n_features+1])
+    print(len(data))
     # shuffles the set of sequences
     np.random.shuffle(data)
 
@@ -57,6 +61,7 @@ def generate_train_test_data_sets():
     return np.asarray(seg_feature_data), np.asarray(seg_label_data)
 
 features, labels_norm = generate_train_test_data_sets()
+print(len(features))
 labels = []
 # convert label data to one_hot arrays
 for k in range(0, len(labels_norm)):
@@ -70,13 +75,21 @@ labels = np.reshape(labels, [-1, n_labels])
 model = Sequential()
 #model.add(Embedding(batch_size, timesteps, input_length=data_dim))
 model.add(LSTM(500, input_shape=(n_features, n_input), return_sequences=True))
-model.add(Dropout(dropout))
-model.add(LSTM(400, return_sequences=True))
-model.add(Dropout(dropout))
-model.add(LSTM(300))
-model.add(Dense(200, activation='relu'))
-model.add(Dense(100, activation='relu'))
+model.add(Dropout(0.2))
+model.add(LSTM(375, return_sequences=True))
+model.add(Dropout(0.2))
+model.add(LSTM(325, return_sequences=True))
+model.add(Dropout(0.2))
+model.add(LSTM(275))
+model.add(Dense(50, activation='relu'))
+model.add(Dense(35, activation='relu'))
+model.add(Dense(12, activation='relu'))
+model.add(Dense(12, activation='relu'))
+model.add(Dense(12, activation='relu'))
+model.add(Dense(12, activation='relu'))
+model.add(Dense(12, activation='relu'))
 model.add(Dense(n_labels,  activation='sigmoid'))
+
 
 adam = Adam(lr=0.0001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
 model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
