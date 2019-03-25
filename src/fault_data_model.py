@@ -15,7 +15,7 @@ import std_msgs
 import sensor_msgs
 import fault_diagnostics
 from sensor_msgs.msg import Imu
-from fault_diagnostics.msg import Array
+from fault_diagnostics.msg import Array, featureData
 
 tf.reset_default_graph()
 #number of epochs for training
@@ -60,26 +60,6 @@ loaded_model = model_from_yaml(loaded_model_yaml)
 loaded_model.load_weights("../config/model.h5")
 print("Loaded model from disk")
 
-# Create LSTM
-# expected input data shape: (batch_size, timesteps, data_dim)
-model = Sequential()
-#model.add(Embedding(batch_size, timesteps, input_length=data_dim))
-model.add(LSTM(input_units, input_shape=(n_features, n_input), return_sequences=True))
-model.add(Dropout(dropout))
-model.add(LSTM(hidden1_units, return_sequences=True))
-model.add(Dropout(dropout))
-model.add(LSTM(hidden2_units, return_sequences=True))
-model.add(Dropout(dropout))
-model.add(LSTM(hidden3_units))
-model.add(Dense(dense_units, activation='relu'))
-model.add(Dense(dense_units, activation='relu'))
-model.add(Dense(dense_units, activation='relu'))
-model.add(Dense(dense_units, activation='relu'))
-model.add(Dense(dense_units, activation='relu'))
-model.add(Dense(dense_units, activation='relu'))
-model.add(Dense(dense_units, activation='relu'))
-model.add(Dense(n_labels,  activation='sigmoid'))
-
 loaded_model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
 def generate_train_test_data_sets(iter):
@@ -122,27 +102,34 @@ def faultCallback(cdata):
 
 rospy.init_node('faultDiagnostics', anonymous=True)
 model_pub = rospy.Publisher('/prediction', Array, queue_size=1000, tcp_nodelay=True)
+dataPub = rospy.Publisher("/feature_data", featureData, queue_size=1000, tcp_nodelay=True)
 rospy.Subscriber("/imu", Imu, faultCallback)
 fault_prediction = fault_diagnostics.msg.Array()
+fault_data = fault_diagnostics.msg.featureData()
 rate = rospy.Rate(20)
 rate.sleep()
 while not rospy.is_shutdown():
     if len(data_queue) > 0:
-        print("keys")
-        print data_queue.keys()
-        print("There is Data")
         features = generate_train_test_data_sets(data_queue.keys()[0])
-        print('features:')
-        print np.reshape(features, (n_input, n_features))
         prediction = loaded_model.predict(np.reshape(features, (1, features.shape[1], features.shape[0])))
         fault_prediction.full = prediction[0][0]
         fault_prediction.right_low = prediction[0][1]
         fault_prediction.left_low = prediction[0][2]
+        fault_data.timestamp1 = features[0][:]
+        fault_data.timestamp2 = features[1][:]
+        fault_data.timestamp3 = features[2][:]
+        fault_data.timestamp4 = features[3][:]
+        fault_data.timestamp5 = features[4][:]
+        fault_data.timestamp6 = features[5][:]
+        fault_data.timestamp7 = features[6][:]
+        fault_data.timestamp8 = features[7][:]
+        fault_data.timestamp9 = features[8][:]
+        fault_data.timestamp10 = features[9][:]
+        dataPub.publish(fault_data)
         model_pub.publish(fault_prediction)
         rate.sleep()
         data_queue.pop(data_queue.keys()[0], None)
     else:
-        #print("No Data")
         pass
     if len(data_queue) > 5:
         print("GTFO")

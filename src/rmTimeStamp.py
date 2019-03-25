@@ -1,7 +1,7 @@
 import csv
 
 with open('../config/new_data.csv', "r") as file_in:
-    with open('new_training_set.csv', "a") as file_out:
+    with open('test_rnn.csv', "a") as file_out:
         writer = csv.writer(file_out)
         line_count = 0
         for row in csv.reader(file_in):
