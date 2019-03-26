@@ -34,7 +34,7 @@ def read_data_sets(name):
             read_data_set = np.append(read_data_set, np.array(row))
     return read_data_set
 
-training_file = '../config/training_data.csv'
+training_file = '../config/new_training_set.csv'
 data_set = read_data_sets(training_file)
 print("Loaded training data...")
 
@@ -49,7 +49,7 @@ def generate_train_test_data_sets():
     data = np.reshape(data_set, [int(len(data_set)/5), n_features+1])
     print(len(data))
     data = np.reshape(data, [int(len(data)/n_input), n_input, n_features+1])
-    print(len(data))
+    print(data)
     # shuffles the set of sequences
     np.random.shuffle(data)
 
@@ -88,10 +88,10 @@ model.add(Dense(12, activation='relu'))
 model.add(Dense(12, activation='relu'))
 model.add(Dense(12, activation='relu'))
 model.add(Dense(12, activation='relu'))
-model.add(Dense(n_labels,  activation='sigmoid'))
+model.add(Dense(n_labels, activation='sigmoid'))
 
 
-adam = Adam(lr=0.0001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
+adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
 model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
 history = model.fit(np.reshape(features, (features.shape[0], n_features, features.shape[1])),labels, batch_size=batch_size, epochs=num_epochs, validation_split= .3)
@@ -114,6 +114,6 @@ plt.legend(['train', 'test'], loc='upper left')
 plt.show()
 
 model_yaml = model.to_yaml()
-with open("model.yaml", "w") as yaml_file:
+with open("../config/model.yaml", "w") as yaml_file:
     yaml_file.write(model_yaml)
-model.save_weights("model.h5")
+model.save_weights("../config/model.h5")
