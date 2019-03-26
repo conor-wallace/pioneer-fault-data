@@ -11,6 +11,8 @@ import tensorflow as tf
 import os
 import csv
 
+print('poop')
+
 tf.reset_default_graph()
 #number of epochs for training
 num_epochs = 200
