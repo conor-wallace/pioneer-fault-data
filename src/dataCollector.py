@@ -7,6 +7,8 @@ import fault_diagnostics
 from sensor_msgs.msg import Imu
 from fault_diagnostics.msg import featureData
 
+#2: center 1: left flat 0: right flat
+
 #number of epochs for training
 num_epochs = 1
 #number of possible labels
@@ -40,7 +42,7 @@ data_iter = 0
 data_num_skip = 10
 data_skip = data_num_skip
 # classification for tire pressure: 0=all full, 1=left flat, 2=right flat
-test = 2
+test = 1
 
 def generate_train_test_data_sets(iter):
     global data_queue, data_iter
