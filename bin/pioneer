@@ -1,4 +1,3 @@
 #!/bin/bash
-xterm -e "python ~/catkin_ws/src/pioneer-fault-data/src/fault_data_model.py" &
-xterm -e "python ~/catkin_ws/src/pioneer-fault-data/src/fuzzy_controller.py" &
+xterm -e "python ~/catkin_ws/src/pioneer-fault-data/src/dataCollector.py" &
 xterm -e "python ~/catkin_ws/src/pioneer-fault-data/src/rosPioneer.py" &
