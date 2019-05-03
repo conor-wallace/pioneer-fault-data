@@ -32,11 +32,16 @@ def controlCallback(data):
     x = data.position.x
     y = data.position.y
     z = data.position.z
-    quatrenion = (data.orientation.x,data.orientation.y,data.orientation.z,data.orientation.w)
-    euler = tf.transformations.euler_from_quatrenion(quatrenion)
-    roll = euler[0]
-    pitch = euler[1]
-    yaw = euler[2]
+    explicit_quat = [data.orientation.x, data.orientation.y, data.orientation.z, data.orientation.w]
+    roll, pitch, yaw = tf.transformations.euler_from_quaternion(explicit_quat)
+    #quatrenion = (data.orientation.x,data.orientation.y,data.orientation.z,data.orientation.w)
+    #euler = tf.transformations.euler_from_quatrenion(quatrenion)
+    #roll = euler[0]
+    #pitch = euler[1]
+    #yaw = euler[2]
+    #print("roll %s" % roll)
+    #print("pitch %s" % pitch)
+    #print("yaw %s" % yaw)
     with open('lighthouse_data.csv', mode='a') as lighthouse_csvfile:
         lighthouse_csv_writer = csv.writer(lighthouse_csvfile, delimiter=',')
         train_csv_writer.writerow([x, y, z, roll, pitch, yaw, seq, test])
@@ -46,13 +51,13 @@ rospy.init_node('pioneer', anonymous=True)
 #publishers
 velPub = rospy.Publisher("/cmd_vel", Twist, queue_size=10, tcp_nodelay=True)
 motPub = rospy.Publisher("/cmd_motor_state", MotorState, queue_size=10, tcp_nodelay=True)
-rospy.Subscriber("/pose", Pose, controlCallback)
+rospy.Subscriber("/pose1", Pose, controlCallback)
 #rospy.Subscriber('/fuzzy', Float64, controlCallback)
 rate = rospy.Rate(10)
 rate.sleep()
 vel = geometry_msgs.msg.Twist()
 
-target = 200
+target = 100
 count = 0
 #derivative of vel.linear.z control
 #dt = target/rate
