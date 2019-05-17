@@ -14,7 +14,7 @@ import csv
 
 tf.reset_default_graph()
 #number of epochs for training
-num_epochs = 500
+num_epochs = 50
 #number of possible labels
 n_labels = 3
 #number of features
@@ -35,7 +35,7 @@ def read_data_sets(name):
             read_data_set = np.append(read_data_set, np.array(row))
     return read_data_set
 
-training_file = '../config/new_training_set.csv'
+training_file = '../config/training_data.csv'
 data_set = read_data_sets(training_file)
 print("Loaded training data...")
 
@@ -46,11 +46,11 @@ def generate_train_test_data_sets():
     #data = data[int((len(data)/20)+1):]
     #data = np.reshape(data, [int(len(data)/n_input), n_input, n_features+1])
     #print(len(data))
-
+    #print(np.as_array(data_set.shape()))
     data = np.reshape(data_set, [int(len(data_set)/5), n_features+1])
     print(len(data))
     data = np.reshape(data, [int(len(data)/n_input), n_input, n_features+1])
-    print(data)
+    print(len(data))
     # shuffles the set of sequences
     np.random.shuffle(data)
 
