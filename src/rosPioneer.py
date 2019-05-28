@@ -24,34 +24,10 @@ from p2os_msgs.msg import MotorState
 from geometry_msgs.msg import Twist, Pose
 from std_msgs.msg import Float64
 
-test = sys.argv[1]
-seq = 0
-
-def controlCallback(data):
-    global controller
-    x = data.position.x
-    y = data.position.y
-    z = data.position.z
-    explicit_quat = [data.orientation.x, data.orientation.y, data.orientation.z, data.orientation.w]
-    roll, pitch, yaw = tf.transformations.euler_from_quaternion(explicit_quat)
-    #quatrenion = (data.orientation.x,data.orientation.y,data.orientation.z,data.orientation.w)
-    #euler = tf.transformations.euler_from_quatrenion(quatrenion)
-    #roll = euler[0]
-    #pitch = euler[1]
-    #yaw = euler[2]
-    #print("roll %s" % roll)
-    #print("pitch %s" % pitch)
-    #print("yaw %s" % yaw)
-    with open('lighthouse_data.csv', mode='a') as lighthouse_csvfile:
-        lighthouse_csv_writer = csv.writer(lighthouse_csvfile, delimiter=',')
-        train_csv_writer.writerow([x, y, z, roll, pitch, yaw, seq, test])
-    seq += 1
-
 rospy.init_node('pioneer', anonymous=True)
 #publishers
 velPub = rospy.Publisher("/cmd_vel", Twist, queue_size=10, tcp_nodelay=True)
 motPub = rospy.Publisher("/cmd_motor_state", MotorState, queue_size=10, tcp_nodelay=True)
-rospy.Subscriber("/pose1", Pose, controlCallback)
 #rospy.Subscriber('/fuzzy', Float64, controlCallback)
 rate = rospy.Rate(10)
 rate.sleep()
@@ -75,4 +51,4 @@ while not rospy.is_shutdown():
         velPub.publish(vel)
         rate.sleep()
         rospy.loginfo("target reached")
-        break
+	break

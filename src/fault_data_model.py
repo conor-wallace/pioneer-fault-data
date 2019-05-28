@@ -1,4 +1,3 @@
-
 from keras.models import Sequential
 from keras.layers import Dense, Dropout
 from keras.layers import Embedding
@@ -12,10 +11,7 @@ import os
 import csv
 import rospy
 import std_msgs
-import sensor_msgs
-import fault_diagnostics
-from sensor_msgs.msg import Imu
-from fault_diagnostics.msg import Array, featureData
+from std_msgs.msg import Float64
 
 tf.reset_default_graph()
 #number of epochs for training
@@ -51,6 +47,50 @@ data_iter = 0
 data_num_skip = 10
 data_skip = data_num_skip
 
+def read_data_sets(name):
+    read_data_set = []
+    with open(name, "r") as fault_data:
+        for row in csv.reader(fault_data):
+            read_data_set = np.append(read_data_set, np.array(row))
+    return read_data_set
+
+training_file = '../config/testCenter.csv'
+data_set = read_data_sets(training_file)
+print("Loaded training data...")
+
+def generate_train_test_data_sets():
+    # divides the entire data set into sequences of 10 data points
+    #data = np.reshape(data_set, [int(len(data_set)/5), n_features+1])
+    #print(data)
+    #data = data[int((len(data)/20)+1):]
+    #data = np.reshape(data, [int(len(data)/n_input), n_input, n_features+1])
+    #print(len(data))
+    #print(np.as_array(data_set.shape()))
+    data = np.reshape(data_set, [int(len(data_set)/5), n_features+1])
+    print(len(data))
+    data = np.reshape(data, [int(len(data)/n_input), n_input, n_features+1])
+    print(len(data))
+    # shuffles the set of sequences
+    np.random.shuffle(data)
+
+    # takes the tire pressure classification from every 10th data point in every sequence
+    seg_label_data = data[:, n_input-1, n_features]
+    # takes the feature data parameters from every sequence
+    seg_feature_data = data[:, :, :n_features]
+
+    return np.asarray(seg_feature_data), np.asarray(seg_label_data)
+
+features, labels_norm = generate_train_test_data_sets()
+print(len(features))
+print(features)
+labels = []
+# convert label data to one_hot arrays
+for k in range(0, len(labels_norm)):
+    one_hot_label = np.zeros([3], dtype=float)
+    one_hot_label[int(float(labels_norm[k]))] = 1.0
+    labels = np.append(labels, one_hot_label)
+labels = np.reshape(labels, [-1, n_labels])
+
 # load YAML and create model
 yaml_file = open('../config/model.yaml', 'r')
 loaded_model_yaml = yaml_file.read()
@@ -62,74 +102,43 @@ print("Loaded model from disk")
 
 loaded_model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
-def generate_train_test_data_sets(iter):
-    global data_queue, data_iter
-    feature_data = data_queue[iter]
+rospy.init_node('fault_predictor', anonymous=True)
+#publishers
+predictionPub = rospy.Publisher("/prediction", Float64, queue_size=1, tcp_nodelay=True)
+steeringPub = rospy.Publisher("/steering", Float64, queue_size=1, tcp_nodelay=True)
+rate = rospy.Rate(5)
+predictionMsg = std_msgs.msg.Float64()
+steeringMsg = std_msgs.msg.Float64()
 
-    feature_data = np.reshape(feature_data, [n_input,n_features])
-    i = 0
-    #This could be a possible flaw
-    for i in range(len(feature_data)):
-        feature_data[i][1] = feature_data[i][1] - x_error
-        feature_data[i][2] = feature_data[i][2] - y_error
-
-    return np.asarray(feature_data)
-
-def faultCallback(cdata):
-    global initial_reading, data, data_queue, data_index, last_time_stamp, x_error, y_error, n_input, data_skip, data_num_skip
-    if initial_reading == 1:
-        x_error = cdata.orientation.x
-        y_error = cdata.orientation.y
-        initial_reading = 0
-
-    if data_skip > 0:
-        data_skip -= 1
-        return
-    data = np.append(data, np.asarray([cdata.header.seq, cdata.orientation.x, cdata.orientation.y, 0.2]))
-    data = np.reshape(data, [-1, n_features])
-    if len(data) >= n_input:
-        data_queue[data_index] = data[-n_input:]
-        size = len(data)
-        data = np.delete(data, slice(0, size), axis=0)
-        #print("Deleted Data")
-        data_index += 1
-        data_skip = data_num_skip
-    if (cdata.header.seq - last_time_stamp > 1):
-        print('WARNING! steps since last time stamp:')
-        print(cdata.header.seq - last_time_stamp, cdata.header.seq, last_time_stamp)
-    last_time_stamp = cdata.header.seq
-
-
-rospy.init_node('faultDiagnostics', anonymous=True)
-model_pub = rospy.Publisher('/prediction', Array, queue_size=1000, tcp_nodelay=True)
-dataPub = rospy.Publisher("/feature_data", featureData, queue_size=1000, tcp_nodelay=True)
-rospy.Subscriber("/imu", Imu, faultCallback)
-fault_prediction = fault_diagnostics.msg.Array()
-fault_data = fault_diagnostics.msg.featureData()
-rate = rospy.Rate(20)
-rate.sleep()
+i = 0
 while not rospy.is_shutdown():
-    if len(data_queue) > 0:
-        features = generate_train_test_data_sets(data_queue.keys()[0])
-        prediction = loaded_model.predict(np.reshape(features, (1, features.shape[1], features.shape[0])))
-        fault_prediction.full = prediction[0][0]
-        fault_prediction.right_low = prediction[0][1]
-        fault_prediction.left_low = prediction[0][2]
-        fault_data.timestamp1 = features[0][:]
-        fault_data.timestamp2 = features[1][:]
-        fault_data.timestamp3 = features[2][:]
-        fault_data.timestamp4 = features[3][:]
-        fault_data.timestamp5 = features[4][:]
-        fault_data.timestamp6 = features[5][:]
-        fault_data.timestamp7 = features[6][:]
-        fault_data.timestamp8 = features[7][:]
-        fault_data.timestamp9 = features[8][:]
-        fault_data.timestamp10 = features[9][:]
-        dataPub.publish(fault_data)
-        model_pub.publish(fault_prediction)
+    if(i < len(features)):
+        feature_batch = features[i]
+        prediction = loaded_model.predict(np.reshape(feature_batch, (1, feature_batch.shape[1], feature_batch.shape[0])))
+        center_prob = prediction[0][0]*100
+        left_prob = prediction[0][1]*100
+        right_prob = prediction[0][2]*100
+
+        if(center_prob > left_prob and center_prob > right_prob):
+            print("center: %s" % center_prob)
+            predictionMsg = center_prob
+            steeringMsg = 0.0
+        elif(right_prob > center_prob and right_prob > left_prob):
+            print("right: %s" % right_prob)
+            predictionMsg = right_prob
+            steeringMsg = 1.0
+        elif(left_prob > center_prob and left_prob > right_prob):
+            print("left: %s" % left_prob)
+            predictionMsg = left_prob
+            steeringMsg = 2.0
+        i += 1
+        predictionPub.publish(predictionMsg)
+        steeringPub.publish(steeringMsg)
         rate.sleep()
-        data_queue.pop(data_queue.keys()[0], None)
     else:
-        pass
-    if len(data_queue) > 5:
-        print("GTFO")
+        predictionMsg = -1
+        steeringMsg = -1
+        predictionPub.publish(predictionMsg)
+        steeringPub.publish(steeringMsg)
+        rate.sleep()
+	break
