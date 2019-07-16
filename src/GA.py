@@ -1,9 +1,61 @@
 import numpy
 
-def cal_pop_fitness(equation_inputs, pop):
+def cal_pop_fitness(population):
     # Calculating the fitness value of each solution in the current population.
-    # The fitness function calulates the sum of products between each input and its corresponding weight.
-    fitness = numpy.sum(pop*equation_inputs, axis=1)
+    fitness = []
+    for i in range(8):
+        training_file = '../config/training_data.csv'
+        data_set = population[i].read_data_sets(training_file)
+        print("Loaded training data...")
+
+        features, labels_norm = population[i].generate_train_test_data_sets(data_set)
+        print(features.shape)
+        labels = []
+        # convert label data to one_hot arrays
+        for k in range(0, len(labels_norm)):
+            one_hot_label = numpy.zeros([3], dtype=float)
+            one_hot_label[int(float(labels_norm[k]))] = 1.0
+            labels = numpy.append(labels, one_hot_label)
+        labels = numpy.reshape(labels, [-1, population[i].n_labels])
+
+        print("Labels length")
+        print(len(labels))
+        print("Features length")
+        print(len(features))
+
+        score = 0
+
+        for j in range(0, len(features)):
+            prediction = population[i].predict(features[j])
+            print("prediction")
+            print(prediction[0, 0])
+            print(prediction[0, 1])
+            print(prediction[0, 2])
+            rounded_prediction = []
+            rounded_prediction.append(int(round(prediction[0, 0])))
+            rounded_prediction.append(int(round(prediction[0, 1])))
+            rounded_prediction.append(int(round(prediction[0, 2])))
+            rounded_prediction = numpy.reshape(rounded_prediction, [1, 3])
+            print("prediction rounded")
+            print(rounded_prediction[0, 0])
+            print(rounded_prediction[0, 1])
+            print(rounded_prediction[0, 2])
+            print("label")
+            print(labels[j, 0])
+            print(labels[j, 1])
+            print(labels[j, 2])
+
+            correct = True
+            for n in range(len(labels[j])):
+                if labels[j, n] != rounded_prediction[0, n]:
+                    correct = False
+
+            if correct == True:
+                score += 1
+
+        print("score: %s%%" % str(100 * (float(score) / float(len(labels)))))
+        fitness.append(100 * (float(score) / float(len(labels))))
+
     return fitness
 
 def select_mating_pool(pop, fitness, num_parents):

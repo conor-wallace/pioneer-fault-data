@@ -1,10 +1,7 @@
 from keras.models import Sequential
 from keras.layers import Dense, Dropout
 from keras.layers import Embedding
-from keras.layers import LSTM
 from keras.optimizers import Adam
-from keras.models import model_from_yaml
-import matplotlib.pyplot as plt
 from keras import losses
 import numpy as np
 import tensorflow as tf
@@ -26,6 +23,18 @@ class NeuralNetwork:
         self.hidden_units = 6
         self.model = Sequential()
 
+    def create_model(self, weights):
+        #Input Layer
+        self.model.add(Dense(self.input_units, activation='sigmoid', weights=[weights[0],weights[1]]))
+        #Hidden Layers
+        self.model.add(Dropout(0.2))
+        self.model.add(Dense(self.hidden_units, activation='sigmoid', weights=[weights[2],weights[3]]))
+        self.model.add(Dropout(0.2))
+        #Output Layer
+        self.model.add(Dense(self.n_labels, activation='softmax', weights=[weights[4],weights[5]]))
+
+        self.model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+
     def read_data_sets(self, name):
         read_data_set = []
         with open(name, "r") as fault_data:
@@ -35,12 +44,6 @@ class NeuralNetwork:
 
     def generate_train_test_data_sets(self, data_set):
         # divides the entire data set into sequences of 10 data points
-        #data = np.reshape(data_set, [int(len(data_set)/5), n_features+1])
-        #print(data)
-        #data = data[int((len(data)/20)+1):]
-        #data = np.reshape(data, [int(len(data)/n_input), n_input, n_features+1])
-        #print(len(data))
-        #print(np.as_array(data_set.shape()))
         data = np.reshape(data_set, [int(len(data_set)/5), self.n_features+1])
         print(len(data))
         #data = np.reshape(data, [int(len(data)/n_input), n_input, n_features+1])
@@ -55,29 +58,10 @@ class NeuralNetwork:
 
         return np.asarray(seg_feature_data), np.asarray(seg_label_data)
 
-    def create_model(self):
-        #Input Layer
-        input_weights=np.random.rand(4, 6) #weight
-        input_biases=np.random.rand(6) #biases
-        self.model.add(Dense(self.input_units, activation='relu', weights=[input_weights,input_biases]))
-        #Hidden Layers
-        hidden_weights=np.random.rand(6, 6) #weight
-        hidden_biases=np.random.rand(6) #biases
-        self.model.add(Dropout(0.2))
-        self.model.add(Dense(self.hidden_units, activation='relu', weights=[hidden_weights,hidden_biases]))
-        self.model.add(Dropout(0.2))
-        #Output Layer
-        output_weights=np.random.rand(6, 3) #weight
-        output_biases=np.random.rand(3) #biases
-        self.model.add(Dense(self.n_labels, activation='relu', weights=[output_weights,output_biases]))
-
-        self.model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
-
     def predict(self, features):
-        prediction = self.model.predict(np.reshape(features[0], (1, self.n_features)))
-
-        #history = model.fit(np.reshape(features, (features.shape[0], n_features)),labels, batch_size=batch_size, epochs=num_epochs, validation_split= .3)
-
+        prediction = self.model.predict(np.reshape(features, (1, self.n_features)))
+        return prediction
+        '''
         weight_origin_0=self.model.layers[0].get_weights()[0]
         weight_origin_1=self.model.layers[2].get_weights()[0]
         weight_origin_2=self.model.layers[4].get_weights()[0]
@@ -90,5 +74,4 @@ class NeuralNetwork:
         print(np.asarray(weight_origin_1))
         print("Output Layer")
         print(np.asarray(weight_origin_2))
-
-        print(prediction)
+        '''
